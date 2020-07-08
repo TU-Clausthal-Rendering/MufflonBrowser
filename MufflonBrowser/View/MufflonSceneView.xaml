@@ -1,0 +1,134 @@
+﻿<UserControl x:Class="MufflonBrowser.View.MufflonSceneView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:converter="clr-namespace:MufflonBrowser.Converter"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MufflonBrowser.View"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <converter:LastColumnFillConverter x:Key="FillColumn"/>
+    </UserControl.Resources>
+    <TabControl>
+        <TabItem Header="Objects">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <!-- Filters for the objects -->
+                <StatusBar Grid.Row="0" HorizontalAlignment="Stretch">
+                    <TextBlock Margin="5 5 0 5" Text="Filter:"/>
+                    <TextBox Width="250"
+                             Margin="0 5 5 5"
+                             Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Separator Margin="0 5 0 5" Width="1"/>
+                    <TextBlock Margin="5 5 0 5" Text="Instance count:"/>
+                    <TextBox Width="50"
+                             Margin="0 5 0 5"
+                             Text="{Binding InstanceCountMin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Margin="0 5 0 5" Text="to"/>
+                    <TextBox Width="50"
+                             Margin="0 5 5 5"
+                             Text="{Binding InstanceCountMax, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Separator Margin="0 5 0 5" Width="1"/>
+                    <TextBlock Margin="5 5 0 5" Text="Keyframe:"/>
+                    <TextBox Width="50"
+                             Margin="0 5 0 5"
+                             Text="{Binding KeyframeMin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Margin="0 5 0 5" Text="to"/>
+                    <TextBox Width="50"
+                             Margin="0 5 5 5"
+                             Text="{Binding KeyframeMax, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                </StatusBar>
+                <Grid Grid.Row="1">
+                    <!-- Main content: Left side list of objects, middle list of LoDs, right side object/LoD info -->
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="5"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="5"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <ListView Grid.Column="0" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                              SelectedItem="{Binding SelectedObject, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              SelectionMode="Single"
+                              ItemsSource="{Binding FilteredObjects, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Grid.ColumnSpan="2">
+                        <ListView.View>
+                            <GridView>
+                                <!-- The first column of the object list lets us toggle whether it will be exported or not.
+                                     It seems appropriate that the column header toggles it for all currently filtered objects. -->
+                                <GridViewColumn Width="30">
+                                    <GridViewColumn.Header>
+                                        <!-- Since we're in the list context we have to move up to the UserControl to
+                                             get access to the multi-object retain property -->
+                                        <CheckBox IsChecked="{Binding DataContext.RetainObjects,
+                                                                      RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl},
+                                                                      Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </GridViewColumn.Header>
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding Retain, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <!-- We try to get the last column to fill the remaining space (TODO: this only
+                                     works once at startup instead of continuously resizing).
+                                     TODO: it would be nice if we could sort the objects by name by clicking the column. -->
+                                <GridViewColumn Header="Object name"
+                                                Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListView}},
+                                                                Converter={StaticResource FillColumn}}">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                    <GridSplitter Grid.Column="1"
+                                  Width="5"
+                                  HorizontalAlignment="Stretch"/>
+
+                    <!-- We abuse the alternation index of the ListBox to display the LoD's index.
+                         While this only works up until the alternation count (I think), LoDs are
+                         usually in the ballpark of 1 to 3. -->
+                    <ListBox Grid.Column="2" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         SelectionMode="Single"
+                         ItemsSource="{Binding SelectedObjectLods, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                         AlternationCount="1000000000" Grid.ColumnSpan="3" Margin="5,0,5,0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent},
+                                Path=(ItemsControl.AlternationIndex)}" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <GridSplitter Grid.Column="3"
+                                  Width="5"
+                                  HorizontalAlignment="Stretch"/>
+
+                    <!-- Property panels -->
+                    <Grid Grid.Column="4">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <local:MufflonObjectView Grid.Row="0"
+                                             DataContext="{Binding SelectedObject, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <local:MufflonLodView Grid.Row="1"
+                                             DataContext="{Binding SelectedLod, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </TabItem>
+        <TabItem Header="Materials">
+            <!-- TODO: it would be nice if materials could also be filtered/sorted. -->
+            <ListBox ScrollViewer.VerticalScrollBarVisibility="Auto" ItemsSource="{Binding Materials, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+        </TabItem>
+    </TabControl>
+</UserControl>

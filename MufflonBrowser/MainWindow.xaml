@@ -1,0 +1,51 @@
+﻿<Window x:Class="MufflonBrowser.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MufflonBrowser"
+        xmlns:view="clr-namespace:MufflonBrowser.View"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <!-- We need only two gestures for the two common Open/Close operations. -->
+    <Window.InputBindings>
+        <KeyBinding Command="{Binding LoadFile}" Gesture="Ctrl+O"/>
+        <KeyBinding Command="{Binding ExportFile}" Gesture="Ctrl+S"/>
+    </Window.InputBindings>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Menu Grid.Row="0">
+            <MenuItem Header="File">
+                <MenuItem Header="Load file"
+                          Command="{Binding LoadFile}"
+                          InputGestureText="Ctrl+O"
+                          IsCheckable="False"/>
+                <MenuItem Header="Export file"
+                          Command="{Binding ExportFile}"
+                          InputGestureText="Ctrl+S"
+                          IsCheckable="False"/>
+            </MenuItem>
+        </Menu>
+        
+        <!-- Main content: loaded mufflon file browser. -->
+        <view:MufflonSceneView Grid.Row="1" DataContext="{Binding MufflonScene, Mode=OneTime}"/>
+        
+        <!-- Status and progression bar for load/export operations.
+             Only visible when an operation is ongoing. -->
+        <ProgressBar Grid.Row="2" Height="15"
+                     DataContext="{Binding LoadingBar, Mode=OneTime}"
+                     Visibility="{Binding Visible, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                     Minimum="1"
+                     Maximum="{Binding Maximum, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                     Value="{Binding Value, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                     IsIndeterminate="{Binding IsIndeterminate, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <TextBlock Grid.Row="2"
+                   DataContext="{Binding LoadingBar, Mode=OneTime}"
+                   Text="{Binding Text, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                   Visibility="{Binding Visible, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+    </Grid>
+</Window>
