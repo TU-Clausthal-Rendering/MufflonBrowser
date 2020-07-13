@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics.X86;
 
 namespace MufflonBrowser.Model
 {
@@ -66,11 +67,10 @@ namespace MufflonBrowser.Model
                 reader.BaseStream.Seek((long)lodOffset, SeekOrigin.Begin);
                 Lods.Add(new MufflonLodModel(reader));
             }
-
-            InstanceCount = 0;
         }
 
         private bool m_retain = true;
+        private int m_instanceCount = 0;
 
         public string Name { get; set; }
         public uint Flags { get; set; }
@@ -79,9 +79,22 @@ namespace MufflonBrowser.Model
         public BoundingBox Aabb { get; set; }
         public List<ushort> MaterialIndices { get; set; }
         public List<MufflonLodModel> Lods { get; set; }
+        public List<MufflonInstanceModel> Instances { get; set; }
         public int MaterialIndicesCount { get => (MaterialIndices == null ? 0 : MaterialIndices.Count); }
         public int LodCount { get => (Lods == null ? 0 : Lods.Count); }
-        public int InstanceCount { get; set; }
+        // Instance count does NOT necessarily map to Instances.Count because we may not
+        // have the instances loaded due to excessive number of instances
+        public int InstanceCount
+        {
+            get => (Instances == null) ? m_instanceCount : Instances.Count;
+            set
+            {
+                if (Instances != null)
+                    throw new Exception("Cannot set instance count if instance list is present");
+                if (value == m_instanceCount) return;
+                m_instanceCount = value;
+            }
+        }
 
         public bool Retain
         {

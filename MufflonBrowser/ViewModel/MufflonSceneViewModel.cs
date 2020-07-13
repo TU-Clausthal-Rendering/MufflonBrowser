@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Windows;
 using System.Windows.Data;
 
 namespace MufflonBrowser.ViewModel
@@ -30,6 +31,8 @@ namespace MufflonBrowser.ViewModel
         public IReadOnlyList<string> Materials { get => models.MufflonFile?.Scene?.Materials; }
         public ICollectionView FilteredObjects { get => filteredObjects.View; }
         public List<MufflonLodModel> SelectedObjectLods { get => SelectedObject?.Lods; }
+        public List<MufflonInstanceModel> SelectedObjectInstances { get => SelectedObject?.Instances; }
+        public bool HasObjectInstances { get => SelectedObjectInstances != null; }
         public MufflonObjectModel SelectedObject
         {
             get => selectedObject;
@@ -143,8 +146,12 @@ namespace MufflonBrowser.ViewModel
             {
                 case nameof(SelectedObject):
                     OnPropertyChanged(nameof(SelectedObjectLods));
+                    OnPropertyChanged(nameof(SelectedObjectInstances));
                     // Also select the first LoD
                     SelectedLod = SelectedObject?.Lods[0];
+                    break;
+                case nameof(SelectedObjectInstances):
+                    OnPropertyChanged(nameof(HasObjectInstances));
                     break;
                 case nameof(RetainObjects):
                     if (RetainObjects != null && FilteredObjects != null)

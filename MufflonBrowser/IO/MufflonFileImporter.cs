@@ -153,10 +153,12 @@ namespace MufflonBrowser.IO
                 throw new Exception("Invalid instance magic constant");
             var numInstances = reader.ReadUInt32();
 
+
+
             // We only parse instances up to a certain limit due to memory constraints (mainly the names...)
             if (numInstances > 100000)
             {
-                for (uint i = 0u; i < numInstances; ++i)
+                /*for (uint i = 0u; i < numInstances; ++i)
                 {
                     if (i % 100000 == 0)
                         progress(null, false, (int)i + 1, (int)numInstances);
@@ -164,22 +166,30 @@ namespace MufflonBrowser.IO
                     if (objId >= objects.Count)
                         throw new Exception("Found instance with object ID out of bounds");
                     objects[objId].InstanceCount += 1;
-                }
+                }*/
                 return null;
             }
 
+            // To avoid excessive reallocations we first parse all instances and then
+            // add them to the respective objects
             var instances = new List<MufflonInstanceModel>((int)numInstances);
             for (uint i = 0u; i < numInstances; ++i)
             {
                 if (i % 10000 == 0)
                     progress(null, false, (int)i + 1, (int)numInstances);
-                var instance = new MufflonInstanceModel(reader);
-                var objId = (int)instance.ObjectId;
+                instances.Add(new MufflonInstanceModel(reader));
+            }
+
+            foreach (var obj in objects)
+                obj.Instances = new List<MufflonInstanceModel>();
+            foreach(var inst in instances)
+            {
+                var objId = (int)inst.ObjectId;
                 if (objId >= objects.Count)
                     throw new Exception("Found instance with object ID out of bounds");
-                objects[objId].InstanceCount += 1;
-                instances.Add(instance);
+                objects[objId].Instances.Add(inst);
             }
+
             return instances;
         }
     }

@@ -9,6 +9,11 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <converter:LastColumnFillConverter x:Key="FillColumn"/>
+        <converter:BooleanVisibilityConverter x:Key="BoolToVis"/>
+        <converter:ValueConverterGroup x:Key="InvBoolToVis">
+            <converter:BooleanInverterConverter/>
+            <converter:BooleanVisibilityConverter/>
+        </converter:ValueConverterGroup>
     </UserControl.Resources>
     <TabControl>
         <TabItem Header="Objects">
@@ -93,20 +98,42 @@
                                   Width="5"
                                   HorizontalAlignment="Stretch"/>
 
-                    <!-- We abuse the alternation index of the ListBox to display the LoD's index.
+                    <Grid Grid.Column="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <!-- We abuse the alternation index of the ListBox to display the LoD's index.
                          While this only works up until the alternation count (I think), LoDs are
                          usually in the ballpark of 1 to 3. -->
-                    <ListBox Grid.Column="2" ScrollViewer.VerticalScrollBarVisibility="Auto"
-                         SelectionMode="Single"
-                         ItemsSource="{Binding SelectedObjectLods, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-                         AlternationCount="1000000000" Grid.ColumnSpan="3" Margin="5,0,5,0">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent},
-                                Path=(ItemsControl.AlternationIndex)}" />
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                        <ListBox Grid.Row="0" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 SelectionMode="Single"
+                                 ItemsSource="{Binding SelectedObjectLods, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                                 AlternationCount="1000000000">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent},
+                                                              Path=(ItemsControl.AlternationIndex)}" />
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <Grid Grid.Row="1">
+                            <ListBox ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                     SelectionMode="Single"
+                                     ItemsSource="{Binding SelectedObjectInstances, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            <TextBlock Name="empty" Text="N/A"
+                                       Visibility="{Binding HasObjectInstances, Mode=OneWay,
+                                                            UpdateSourceTrigger=PropertyChanged,
+                                                            Converter={StaticResource InvBoolToVis}}"/>
+                        </Grid>
+                    </Grid>
 
                     <GridSplitter Grid.Column="3"
                                   Width="5"
